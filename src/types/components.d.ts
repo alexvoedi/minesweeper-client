@@ -7,6 +7,11 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    Board: typeof import('./../components/board.vue')['default']
+    Cell: typeof import('./../components/cell.vue')['default']
+    NButton: typeof import('naive-ui')['NButton']
+    NH1: typeof import('naive-ui')['NH1']
+    NIcon: typeof import('naive-ui')['NIcon']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
