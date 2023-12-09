@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { CellState } from './enums/cell-state'
+import { GameState } from './enums/game-state'
 import { useGameStore } from '@/store/game'
 import type { BoardSettings } from '@/types/board-settings'
 
 const gameStore = useGameStore()
+const now = useTimestamp()
 
 async function createGame(settings: BoardSettings) {
   await gameStore.createGame(settings)
@@ -29,6 +31,19 @@ const marks = computed(() => {
 
   return markedCells.length
 })
+
+const time = computed(() => {
+  if (gameStore.time.start) {
+    if (gameStore.time.end)
+      return (gameStore.time.end - gameStore.time.start) / 1000
+
+    else
+      return (now.value - gameStore.time.start) / 1000
+  }
+  else {
+    return 0
+  }
+})
 </script>
 
 <template>
@@ -40,6 +55,10 @@ const marks = computed(() => {
 
     <div class="flex items-center justify-center gap-8">
       <div class="justify-self-center flex items-center justify-center gap-4">
+        <n-button @click="createGame({ cols: 8, rows: 8, mines: 4 })">
+          Loser
+        </n-button>
+
         <n-button @click="createGame({ cols: 10, rows: 10, mines: 10 })">
           Easy
         </n-button>
@@ -69,9 +88,14 @@ const marks = computed(() => {
     </div>
 
     <div class="p-8 mx-auto space-y-2">
-      <Board v-if="gameStore.cells.length > 0" />
+      <div v-if="gameStore.cells.length > 0" class="relative">
+        <Board />
+        <Overlay v-if="gameStore.state === GameState.WIN || gameStore.state === GameState.LOSE">
+          {{ gameStore.state }}
+        </Overlay>
+      </div>
 
-      <div class="flex items-center justify-center gap-4">
+      <div class="flex items-center justify-center gap-4 font-mono text-lg">
         <span class="flex items-center justify-center gap-1">
           <n-icon class="ico-mdi-flag text-red-600" />
           <span>{{ flags }}</span>
@@ -80,6 +104,11 @@ const marks = computed(() => {
         <span class="flex items-center justify-center gap-1">
           <span class="text-gray-600 font-bold">?</span>
           <span>{{ marks }}</span>
+        </span>
+
+        <span class="flex items-center justify-center gap-1">
+          <n-icon class="ico-mdi-clock" />
+          <span>{{ time.toFixed(2) }}</span>
         </span>
       </div>
     </div>

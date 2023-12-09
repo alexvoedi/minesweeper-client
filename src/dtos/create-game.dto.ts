@@ -1,3 +1,4 @@
+import type { GameState } from '../enums/game-state'
 import type { BoardSettings } from '../types/board-settings'
 
 export interface CreateGameRequestDto {
@@ -10,6 +11,6 @@ export interface CreateGameResponseDto {
   data: {
     id: string
     settings: BoardSettings
-    gameOver: boolean
+    state: GameState
   }
 }

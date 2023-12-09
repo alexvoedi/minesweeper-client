@@ -3,6 +3,9 @@ import { defineStore } from 'pinia'
 import type { UpdateBoardResponseDto } from '../dtos/update-board.dto'
 import type { Cell } from '../types/cell'
 import type { BoardSettings } from '../types/board-settings'
+import { GameState } from '../enums/game-state'
+import type { GetGameResponse } from '../dtos/get-time.dto'
+import type { Time } from '../types/time'
 import type { UpdateCellRequestDto, UpdateCellResponseDto } from '@/dtos/update-cell.dto'
 import type { CreateGameRequestDto, CreateGameResponseDto } from '@/dtos/create-game.dto'
 import type { Xy } from '@/types/xy'
@@ -11,23 +14,27 @@ const BASE_URL = 'http://192.168.0.2:3000'
 
 interface GameStore {
   cellSize: Ref<number>
-  gameId: string
+  id: string
   settings: BoardSettings
   cells: Cell[]
-  gameOver: boolean
+  state: GameState
+  time: Time
 }
 
 export const useGameStore = defineStore('game-store', {
   state: (): GameStore => ({
     cellSize: useStorage('cell-size', 32),
-    gameId: '',
+    id: '',
     settings: {
       cols: 10,
       rows: 10,
       mines: 10,
     },
     cells: [],
-    gameOver: false,
+    state: GameState.WAITING,
+    time: {
+      start: 0,
+    },
   }),
 
   actions: {
@@ -61,22 +68,37 @@ export const useGameStore = defineStore('game-store', {
           json: dto,
         }).json<CreateGameResponseDto>()
 
-        this.gameId = data.id
-        this.settings = data.settings
-        this.gameOver = data.gameOver
+        Object.assign(this, data)
+
+        this.time = {
+          start: 0,
+        }
       }
       catch (error) {
+        console.error(error)
+      }
+    },
 
+    async updateGame() {
+      const url = new URL(`/games/${this.id}/`, BASE_URL)
+
+      try {
+        const { data } = await ky.get(url).json<GetGameResponse>()
+
+        Object.assign(this, data)
+      }
+      catch (error) {
+        console.error(error)
       }
     },
 
     async updateBoard() {
-      const url = new URL(`/games/${this.gameId}/boards/`, BASE_URL)
+      const url = new URL(`/games/${this.id}/boards/`, BASE_URL)
 
       try {
         const { data } = await ky.get(url).json<UpdateBoardResponseDto>()
 
-        this.cells = data.cells
+        Object.assign(this, data)
       }
       catch (error) {
         console.error(error)
@@ -84,23 +106,20 @@ export const useGameStore = defineStore('game-store', {
     },
 
     async updateCell(dto: UpdateCellRequestDto) {
-      const url = new URL(`/games/${this.gameId}/cells/`, BASE_URL)
+      const url = new URL(`/games/${this.id}/cells/`, BASE_URL)
 
       try {
         const { data } = await ky.patch(url, {
           json: dto,
         }).json<UpdateCellResponseDto>()
 
-        if (data.gameOver) {
-          this.gameOver = true
-        }
-        else {
-          data.cells.forEach((cell) => {
-            const boardCellIndex = this.getCellIndex([cell.x, cell.y])
+        data.cells.forEach((cell) => {
+          const boardCellIndex = this.getCellIndex([cell.x, cell.y])
 
-            this.cells[boardCellIndex] = cell
-          })
-        }
+          this.cells[boardCellIndex] = cell
+        })
+
+        this.state = data.state
       }
       catch (error) {
         console.error(error)

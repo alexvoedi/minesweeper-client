@@ -1,4 +1,5 @@
 import type { CellAction } from '../enums/cell-action'
+import type { GameState } from '../enums/game-state'
 import type { Cell } from '../types/cell'
 
 export interface UpdateCellRequestDto {
@@ -9,7 +10,7 @@ export interface UpdateCellRequestDto {
 
 export interface UpdateCellResponseDto {
   data: {
-    gameOver: boolean
+    state: GameState
     cells: Cell[]
   }
 }
