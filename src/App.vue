@@ -21,13 +21,13 @@ useHead({
 })
 
 const flags = computed(() => {
-  const flaggedCells = gameStore.cells.filter(cell => cell.state === CellState.FLAGGED)
+  const flaggedCells = gameStore.cellsArr.filter(cell => cell.state === CellState.FLAGGED)
 
   return flaggedCells.length
 })
 
 const marks = computed(() => {
-  const markedCells = gameStore.cells.filter(cell => cell.state === CellState.MARKED)
+  const markedCells = gameStore.cellsArr.filter(cell => cell.state === CellState.MARKED)
 
   return markedCells.length
 })
@@ -55,10 +55,6 @@ const time = computed(() => {
 
     <div class="flex items-center justify-center gap-8">
       <div class="justify-self-center flex items-center justify-center gap-4">
-        <n-button @click="createGame({ cols: 8, rows: 8, mines: 4 })">
-          Loser
-        </n-button>
-
         <n-button @click="createGame({ cols: 10, rows: 10, mines: 10 })">
           Easy
         </n-button>
@@ -88,7 +84,7 @@ const time = computed(() => {
     </div>
 
     <div class="p-8 mx-auto space-y-2">
-      <div v-if="gameStore.cells.length > 0" class="relative">
+      <div v-if="gameStore.cells.size > 0" class="relative rounded-lg overflow-hidden">
         <Board />
         <Overlay v-if="gameStore.state === GameState.WIN || gameStore.state === GameState.LOSE">
           {{ gameStore.state }}

@@ -27,14 +27,6 @@ async function updateCell(cell: Cell, action: CellAction) {
   if (cell.state === CellState.FLAGGED && action === CellAction.OPEN)
     return
 
-  if (action === CellAction.OPEN_ADJACENT) {
-    emit('setAdjacentCellHighlight', {
-      x: cell.x,
-      y: cell.y,
-      highlight: false,
-    })
-  }
-
   await gameStore.updateCell({
     x: cell.x,
     y: cell.y,

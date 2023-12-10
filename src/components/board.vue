@@ -6,6 +6,8 @@ import { useGameStore } from '@/store/game'
 
 const gameStore = useGameStore()
 
+const highlightedCells = shallowRef<Cell[]>([])
+
 function setAdjacentCellHighlight({ x, y, highlight }: { x: number, y: number, highlight: boolean }) {
   if (highlight) {
     const adjacentCells: Cell[] = []
@@ -26,14 +28,19 @@ function setAdjacentCellHighlight({ x, y, highlight }: { x: number, y: number, h
       }
     }
 
-    const closedAdjacentCells = adjacentCells.filter(cell => cell.state === CellState.CLOSED)
+    highlightedCells.value = adjacentCells.filter(cell => cell.state === CellState.CLOSED)
 
-    closedAdjacentCells.forEach(cell => cell.highlight = highlight)
+    highlightedCells.value.forEach(cell => cell.highlight = highlight)
   }
   else {
-    gameStore.cells.forEach(cell => cell.highlight = highlight)
+    highlightedCells.value.forEach(cell => cell.highlight = false)
   }
 }
+
+document.addEventListener('mouseup', () => {
+  highlightedCells.value.forEach(cell => cell.highlight = false)
+  highlightedCells.value = []
+})
 </script>
 
 <template>

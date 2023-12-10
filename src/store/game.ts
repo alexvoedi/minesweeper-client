@@ -6,6 +6,7 @@ import type { BoardSettings } from '../types/board-settings'
 import { GameState } from '../enums/game-state'
 import type { GetGameResponse } from '../dtos/get-time.dto'
 import type { Time } from '../types/time'
+import { xyToString } from '../helpers/xy-to-string'
 import type { UpdateCellRequestDto, UpdateCellResponseDto } from '@/dtos/update-cell.dto'
 import type { CreateGameRequestDto, CreateGameResponseDto } from '@/dtos/create-game.dto'
 import type { Xy } from '@/types/xy'
@@ -16,7 +17,7 @@ interface GameStore {
   cellSize: Ref<number>
   id: string
   settings: BoardSettings
-  cells: Cell[]
+  cells: Map<string, Cell>
   state: GameState
   time: Time
 }
@@ -30,7 +31,7 @@ export const useGameStore = defineStore('game-store', {
       rows: 10,
       mines: 10,
     },
-    cells: [],
+    cells: new Map(),
     state: GameState.WAITING,
     time: {
       start: 0,
@@ -43,21 +44,12 @@ export const useGameStore = defineStore('game-store', {
     },
 
     getCell([x, y]: Xy) {
-      const cell = this.cells.find(boardCell => boardCell.x === x && boardCell.y === y)
+      const cell = this.cells.get(xyToString([x, y]))
 
       if (!cell)
-        throw new Error(`Cell not found: (${x}/${y})`)
+        throw new Error(`Cell not found: ${xyToString([x, y])}`)
 
       return cell
-    },
-
-    getCellIndex([x, y]: Xy) {
-      const cellIndex = this.cells.findIndex(boardCell => boardCell.x === x && boardCell.y === y)
-
-      if (cellIndex < 0)
-        throw new Error(`Cell not found: (${x}/${y})`)
-
-      return cellIndex
     },
 
     async createGame(dto: CreateGameRequestDto) {
@@ -85,7 +77,13 @@ export const useGameStore = defineStore('game-store', {
       try {
         const { data } = await ky.get(url).json<GetGameResponse>()
 
-        Object.assign(this, data)
+        data.cells?.forEach((cell) => {
+          this.cells.set(xyToString([cell.x, cell.y]), cell)
+        })
+
+        this.id = data.id
+        this.state = data.state
+        this.time = data.time
       }
       catch (error) {
         console.error(error)
@@ -98,7 +96,11 @@ export const useGameStore = defineStore('game-store', {
       try {
         const { data } = await ky.get(url).json<UpdateBoardResponseDto>()
 
-        Object.assign(this, data)
+        data.cells.forEach((cell) => {
+          this.cells.set(xyToString([cell.x, cell.y]), cell)
+        })
+
+        this.settings = data.settings
       }
       catch (error) {
         console.error(error)
@@ -114,9 +116,7 @@ export const useGameStore = defineStore('game-store', {
         }).json<UpdateCellResponseDto>()
 
         data.cells.forEach((cell) => {
-          const boardCellIndex = this.getCellIndex([cell.x, cell.y])
-
-          this.cells[boardCellIndex] = cell
+          this.cells.set(xyToString([cell.x, cell.y]), cell)
         })
 
         this.state = data.state
@@ -128,5 +128,9 @@ export const useGameStore = defineStore('game-store', {
 
   },
 
-  getters: {},
+  getters: {
+    cellsArr: (store) => {
+      return Array.from(store.cells.values())
+    },
+  },
 })
