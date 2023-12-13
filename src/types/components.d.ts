@@ -10,6 +10,8 @@ declare module 'vue' {
     Board: typeof import('./../components/board.vue')['default']
     Cell: typeof import('./../components/cell.vue')['default']
     NButton: typeof import('naive-ui')['NButton']
+    NConfig: typeof import('naive-ui')['NConfig']
+    NConfigProvider: typeof import('naive-ui')['NConfigProvider']
     NH1: typeof import('naive-ui')['NH1']
     NIcon: typeof import('naive-ui')['NIcon']
     Overlay: typeof import('./../components/overlay.vue')['default']

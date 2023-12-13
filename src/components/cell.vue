@@ -63,15 +63,15 @@ const gameEnded = computed(() => gameStore.state === GameState.WIN || gameStore.
 
 <template>
   <button
-    :disable="gameEnded" class="border-1 border-gray-300 flex items-center justify-center font-mono"
+    :disable="gameEnded" class="border-1 border-true-gray-300 dark:(border-true-gray-600) flex items-center justify-center font-mono"
     :class="[
       {
-        'bg-gray-500': cell.state !== CellState.OPENED,
-        'bg-gray-200': cell.state === CellState.OPENED,
-        'bg-gray-600': cell.highlight,
+        'bg-true-gray-500 dark:(bg-true-gray-800)': cell.state !== CellState.OPENED,
+        'bg-true-gray-200 dark:(bg-true-gray-700)': cell.state === CellState.OPENED,
+        'bg-true-gray-600 dark:(bg-true-gray-900)': cell.highlight,
         'cursor-auto pointer-events-none': gameEnded,
-        'hover:(bg-gray-400) active:(bg-gray-600)': cell.state !== CellState.OPENED && gameEnded,
-        'cursor-auto': cell.state === CellState.OPENED && !cell.adjacentMines && gameEnded,
+        'hover:(bg-true-gray-400) active:(bg-true-gray-600) dark:(hover:(bg-true-gray-900) active:(bg-true-gray-900))': cell.state !== CellState.OPENED && !gameEnded,
+        'cursor-auto': cell.state === CellState.OPENED && !cell.adjacentMines && !gameEnded,
       },
     ]"
     :style="{
@@ -85,10 +85,10 @@ const gameEnded = computed(() => gameStore.state === GameState.WIN || gameStore.
       }
     }"
     @mouseup.left.prevent="() => {
-      if (cell.state === CellState.OPENED && cell.adjacentMines) {
+      if ((cell.state === CellState.OPENED) && cell.adjacentMines) {
         updateCell(cell, CellAction.OPEN_ADJACENT)
       }
-      else if (cell.state === CellState.CLOSED) {
+      else if (cell.state === CellState.CLOSED || cell.state === CellState.MARKED) {
         updateCell(cell, CellAction.OPEN)
       }
     }"
@@ -104,14 +104,18 @@ const gameEnded = computed(() => gameStore.state === GameState.WIN || gameStore.
       }
     }"
   >
-    <span v-if="cell.mine" class="ico-mdi-bomb text-red-600" />
+    <span
+      v-if="cell.mine" class="text-red-600" :class="[
+        gameStore.state === GameState.WIN ? 'ico-mdi-bomb' : 'ico-mdi-bomb',
+      ]"
+    />
     <span v-else-if="cell.state === CellState.FLAGGED" class="ico-mdi-flag text-red-600" />
     <span v-else-if="cell.state === CellState.MARKED" class="text-gray-200 font-bold">?</span>
     <span
       v-else-if="cell.state === CellState.OPENED && cell.adjacentMines && cell.adjacentMines > 0" :class="{
-        'color-red-600': 7 <= cell.adjacentMines && cell.adjacentMines <= 9,
+        'color-red-600 dark:(color-red-500)': 7 <= cell.adjacentMines && cell.adjacentMines <= 9,
         'color-yellow-600': 4 <= cell.adjacentMines && cell.adjacentMines <= 6,
-        'color-blue-600': 1 <= cell.adjacentMines && cell.adjacentMines <= 3,
+        'color-blue-600 dark:(color-blue-500)': 1 <= cell.adjacentMines && cell.adjacentMines <= 3,
       }" class="font-bold pointer-events-none"
     >
       {{ cell.adjacentMines }}

@@ -8,7 +8,7 @@ import type { GetGameResponse } from '../dtos/get-time.dto'
 import type { Time } from '../types/time'
 import { xyToString } from '../helpers/xy-to-string'
 import type { UpdateCellRequestDto, UpdateCellResponseDto } from '@/dtos/update-cell.dto'
-import type { CreateGameRequestDto, CreateGameResponseDto } from '@/dtos/create-game.dto'
+import type { CreateGameDto, CreateGameResponseDto } from '@/dtos/create-game.dto'
 import type { Xy } from '@/types/xy'
 
 const BASE_URL = 'http://192.168.0.2:3000'
@@ -52,7 +52,7 @@ export const useGameStore = defineStore('game-store', {
       return cell
     },
 
-    async createGame(dto: CreateGameRequestDto) {
+    async createGame(dto: CreateGameDto) {
       const url = new URL('/games/', BASE_URL)
 
       try {
@@ -65,6 +65,8 @@ export const useGameStore = defineStore('game-store', {
         this.time = {
           start: 0,
         }
+
+        this.cells = new Map()
       }
       catch (error) {
         console.error(error)
